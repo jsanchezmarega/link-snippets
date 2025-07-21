@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, FormEvent } from 'react';
+import { Link } from '../../types/link';
 
 const LinkList = ({
   filterTag,
@@ -8,7 +9,7 @@ const LinkList = ({
   filterTag: string | null;
   onRefresh: () => void;
 }) => {
-  const [links, setLinks] = useState<any[]>([]);
+  const [links, setLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editUrl, setEditUrl] = useState('');
@@ -38,7 +39,7 @@ const LinkList = ({
     onRefresh();
   }
 
-  function startEdit(link: any) {
+  function startEdit(link: Link) {
     setEditingId(link.id);
     setEditUrl(link.url);
     setEditTitle(link.title || '');

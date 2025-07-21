@@ -3,6 +3,7 @@ import LinkForm from './components/LinkForm';
 import LinkList from './components/LinkList';
 import TagFilter from './components/TagFilter';
 import React, { useState, useEffect } from 'react';
+import { Link } from '../types/link';
 
 export default function Home() {
   const [refresh, setRefresh] = useState(0);
@@ -14,7 +15,7 @@ export default function Home() {
     async function fetchTags() {
       const res = await fetch('/api/links');
       const data = await res.json();
-      const tags = Array.from(new Set(data.flatMap((l: any) => l.tags || []))) as string[];
+      const tags = Array.from(new Set(data.flatMap((l: Link) => l.tags || []))) as string[];
       setAllTags(tags);
     }
     fetchTags();
