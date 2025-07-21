@@ -14,10 +14,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+  links Link[]
+}
+
 model Link {
   id        Int      @id @default(autoincrement())
   url       String
   title     String?
   createdAt DateTime @default(now())
-  tags      String[] // simple array of tags for now
+  tags      String[]
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
