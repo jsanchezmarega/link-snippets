@@ -10,8 +10,13 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    if (!url) {
+      setError('URL is required');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     const tagArr = tags
       .split(',')
       .map((t: string) => t.trim())
@@ -41,7 +46,6 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
         placeholder="URL*"
         value={url}
         onChange={(e: ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
-        required
       />
       <input
         className="border rounded px-2 py-1"
