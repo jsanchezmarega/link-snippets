@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Link Snippets
 
-## Getting Started
+Save and tag useful links — a simple fullstack app built with modern tools.
 
-First, run the development server:
+This is a personal learning project built to explore Prisma, PostgreSQL, and a modern Next.js stack. It’s not intended for production use, but it explores good practices around project structure, tooling, and modern workflows.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🧱 Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Next.js** (App Router, TypeScript)
+- **Prisma** (ORM)
+- **PostgreSQL** (via Docker)
+- **React + Tailwind CSS** (UI)
+- **Jest + React Testing Library** (testing)
+- **ESLint + Prettier + Husky** (tooling)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🚀 Getting Started
 
-To learn more about Next.js, take a look at the following resources:
+1. **Clone the repo**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   git clone https://github.com/jsanchezmarega/link-snippets.git
+   cd link-snippets
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Start PostgreSQL with Docker**
 
-## Deploy on Vercel
+   ```bash
+   docker-compose up -d
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Set up environment variables**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Create a `.env` file in the root:
+
+   ```env
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=postgres
+   POSTGRES_DB=linksnippets
+   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/linksnippets
+   ```
+
+4. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+5. **Run Prisma migrations**
+
+   ```bash
+   docker-compose exec app npx prisma migrate dev --name init
+   ```
+
+6. **Start the app**
+
+   ```bash
+   npm run dev
+   ```
+
+   App will be running at [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🛠 Features
+
+- Add a link with title, URL, and tags
+- View list of saved links
+- Code is structured for clarity and maintainability, with basic test coverage
+
+---
+
+## 📌 Notes
+
+- This is mainly for personal learning, but I’m always open to feedback.
