@@ -1,8 +1,8 @@
 'use client';
-import LinkForm from "./components/LinkForm";
-import LinkList from "./components/LinkList";
-import TagFilter from "./components/TagFilter";
-import React, { useState, useEffect } from "react";
+import LinkForm from './components/LinkForm';
+import LinkList from './components/LinkList';
+import TagFilter from './components/TagFilter';
+import React, { useState, useEffect } from 'react';
 
 export default function Home() {
   const [refresh, setRefresh] = useState(0);
@@ -12,7 +12,7 @@ export default function Home() {
   // Fetch all tags for filtering
   useEffect(() => {
     async function fetchTags() {
-      const res = await fetch("/api/links");
+      const res = await fetch('/api/links');
       const data = await res.json();
       const tags = Array.from(new Set(data.flatMap((l: any) => l.tags || []))) as string[];
       setAllTags(tags);
@@ -27,7 +27,11 @@ export default function Home() {
       <TagFilter allTags={allTags} filterTag={filterTag} setFilterTag={setFilterTag} />
       {/* Key forces remount to refresh list after adding or deleting */}
       <div className="w-full flex justify-center">
-        <LinkList key={refresh + '-' + filterTag} filterTag={filterTag} onRefresh={() => setRefresh((r) => r + 1)} />
+        <LinkList
+          key={refresh + '-' + filterTag}
+          filterTag={filterTag}
+          onRefresh={() => setRefresh((r) => r + 1)}
+        />
       </div>
     </div>
   );

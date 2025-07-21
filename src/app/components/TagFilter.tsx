@@ -1,7 +1,11 @@
-"use client";
-import React from "react";
+'use client';
+import React from 'react';
 
-const TagFilter = ({ allTags, filterTag, setFilterTag }: {
+const TagFilter = ({
+  allTags,
+  filterTag,
+  setFilterTag,
+}: {
   allTags: string[];
   filterTag: string | null;
   setFilterTag: (tag: string | null) => void;
@@ -25,4 +29,4 @@ const TagFilter = ({ allTags, filterTag, setFilterTag }: {
   </div>
 );
 
-export default TagFilter; 
+export default TagFilter;

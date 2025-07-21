@@ -1,32 +1,35 @@
-"use client";
-import React, { useState, FormEvent, ChangeEvent } from "react";
+'use client';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 
 const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
-  const [url, setUrl] = useState("");
-  const [title, setTitle] = useState("");
-  const [tags, setTags] = useState("");
+  const [url, setUrl] = useState('');
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    const tagArr = tags.split(",").map((t: string) => t.trim()).filter(Boolean);
-    const res = await fetch("/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    setError('');
+    const tagArr = tags
+      .split(',')
+      .map((t: string) => t.trim())
+      .filter(Boolean);
+    const res = await fetch('/api/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url, title, tags: tagArr }),
     });
     setLoading(false);
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error || "Failed to add link");
+      setError(data.error || 'Failed to add link');
       return;
     }
-    setUrl("");
-    setTitle("");
-    setTags("");
+    setUrl('');
+    setTitle('');
+    setTags('');
     onAdd();
   }
 
@@ -59,7 +62,7 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
         type="submit"
         disabled={loading}
       >
-        {loading ? "Adding..." : "Add Link"}
+        {loading ? 'Adding...' : 'Add Link'}
       </button>
       {error && <div className="text-red-600 text-sm">{error}</div>}
     </form>
