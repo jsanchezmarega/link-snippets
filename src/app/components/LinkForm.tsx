@@ -34,39 +34,46 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
       .split(',')
       .map((t: string) => t.trim())
       .filter(Boolean);
-    const res = await fetch('/api/links', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, title, tags: tagArr, userId }),
-    });
-    setLoading(false);
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || 'Failed to add link');
-      return;
+    try {
+      const res = await fetch('/api/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, title, tags: tagArr, userId }),
+      });
+      setLoading(false);
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to add link');
+        return;
+      }
+      setUrl('');
+      setTitle('');
+      setTags('');
+      setUserId('');
+      onAdd();
+    } catch {
+      setLoading(false);
+      setError('Failed to add link');
     }
-    setUrl('');
-    setTitle('');
-    setTags('');
-    setUserId('');
-    onAdd();
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full max-w-md">
-      <select
-        className="border rounded px-2 py-1"
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        required
-      >
-        <option value="">Select user</option>
-        {users.map((user) => (
-          <option key={user.id} value={user.id}>
-            {user.name || user.email}
-          </option>
-        ))}
-      </select>
+      <label className="flex flex-col gap-1">
+        User
+        <select
+          className="border rounded px-2 py-1"
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+        >
+          <option value="">Select user</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name || user.email}
+            </option>
+          ))}
+        </select>
+      </label>
       <input
         className="border rounded px-2 py-1"
         type="url"
@@ -95,7 +102,11 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
       >
         {loading ? 'Adding...' : 'Add Link'}
       </button>
-      {error && <div className="text-red-600 text-sm">{error}</div>}
+      {error && (
+        <div data-testid="form-error" className="text-red-600 text-sm">
+          {error}
+        </div>
+      )}
     </form>
   );
 };
