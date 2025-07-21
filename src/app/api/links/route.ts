@@ -2,23 +2,49 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/links - list all links
-export async function GET() {
-  const links = await prisma.link.findMany({ orderBy: { createdAt: 'desc' } });
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('userId');
+  const tag = searchParams.get('tag');
+  const take = searchParams.get('take') ? parseInt(searchParams.get('take')!) : undefined;
+  const skip = searchParams.get('skip') ? parseInt(searchParams.get('skip')!) : undefined;
+  const orderBy = searchParams.get('orderBy') || 'createdAt';
+  const order = searchParams.get('order') === 'asc' ? 'asc' : 'desc';
+
+  type WhereType = {
+    userId?: number;
+    tags?: { has: string };
+  };
+  const where: WhereType = {};
+  if (userId) where.userId = parseInt(userId);
+  if (tag) where.tags = { has: tag };
+
+  const links = await prisma.link.findMany({
+    where,
+    orderBy: { [orderBy]: order },
+    take,
+    skip,
+    include: { user: true },
+  });
   return NextResponse.json(links);
 }
 
 // POST /api/links - add a new link
 export async function POST(req: NextRequest) {
   const data = await req.json();
-  const { url, title, tags } = data;
+  const { url, title, tags, userId } = data;
   if (!url) {
     return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+  }
+  if (!userId) {
+    return NextResponse.json({ error: 'userId is required' }, { status: 400 });
   }
   const link = await prisma.link.create({
     data: {
       url,
       title,
       tags: tags || [],
+      userId: parseInt(userId),
     },
   });
   return NextResponse.json(link, { status: 201 });
@@ -34,7 +60,7 @@ export async function DELETE(req: NextRequest) {
   try {
     await prisma.link.delete({ where: { id } });
     return new NextResponse(null, { status: 204 });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Link not found' }, { status: 404 });
   }
 }
@@ -56,7 +82,7 @@ export async function PATCH(req: NextRequest) {
       },
     });
     return NextResponse.json(updated);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Link not found' }, { status: 404 });
   }
 } 

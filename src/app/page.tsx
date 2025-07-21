@@ -9,6 +9,8 @@ export default function Home() {
   const [refresh, setRefresh] = useState(0);
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [users, setUsers] = useState<{ id: number; name: string; email: string }[]>([]);
+  const [userFilter, setUserFilter] = useState<string>('');
 
   // Fetch all tags for filtering
   useEffect(() => {
@@ -21,16 +23,38 @@ export default function Home() {
     fetchTags();
   }, [refresh]);
 
+  // Fetch users for filter
+  useEffect(() => {
+    fetch('/api/users')
+      .then((res) => res.json())
+      .then((data) => setUsers(data));
+  }, []);
+
   return (
     <div className="font-sans flex flex-col items-center min-h-screen p-8 pb-20 gap-8 sm:p-20">
       <h1 className="text-2xl font-bold mb-4">Link Notes</h1>
       <LinkForm onAdd={() => setRefresh((r) => r + 1)} />
-      <TagFilter allTags={allTags} filterTag={filterTag} setFilterTag={setFilterTag} />
+      <div className="flex gap-2 flex-wrap mt-4">
+        <select
+          className="border rounded px-2 py-1"
+          value={userFilter}
+          onChange={(e) => setUserFilter(e.target.value)}
+        >
+          <option value="">All users</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name || user.email}
+            </option>
+          ))}
+        </select>
+        <TagFilter allTags={allTags} filterTag={filterTag} setFilterTag={setFilterTag} />
+      </div>
       {/* Key forces remount to refresh list after adding or deleting */}
       <div className="w-full flex justify-center">
         <LinkList
-          key={refresh + '-' + filterTag}
+          key={refresh + '-' + filterTag + '-' + userFilter}
           filterTag={filterTag}
+          userId={userFilter}
           onRefresh={() => setRefresh((r) => r + 1)}
         />
       </div>

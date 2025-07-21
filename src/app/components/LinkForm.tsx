@@ -1,18 +1,31 @@
 'use client';
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 
 const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
+  const [userId, setUserId] = useState('');
+  const [users, setUsers] = useState<{ id: number; name: string; email: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/users')
+      .then((res) => res.json())
+      .then((data) => setUsers(data));
+  }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     if (!url) {
       setError('URL is required');
+      setLoading(false);
+      return;
+    }
+    if (!userId) {
+      setError('User is required');
       setLoading(false);
       return;
     }
@@ -24,7 +37,7 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
     const res = await fetch('/api/links', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, title, tags: tagArr }),
+      body: JSON.stringify({ url, title, tags: tagArr, userId }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -35,11 +48,25 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
     setUrl('');
     setTitle('');
     setTags('');
+    setUserId('');
     onAdd();
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full max-w-md">
+      <select
+        className="border rounded px-2 py-1"
+        value={userId}
+        onChange={(e) => setUserId(e.target.value)}
+        required
+      >
+        <option value="">Select user</option>
+        {users.map((user) => (
+          <option key={user.id} value={user.id}>
+            {user.name || user.email}
+          </option>
+        ))}
+      </select>
       <input
         className="border rounded px-2 py-1"
         type="url"

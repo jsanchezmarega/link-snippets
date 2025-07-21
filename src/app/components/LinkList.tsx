@@ -1,15 +1,21 @@
 'use client';
 import React, { useState, useEffect, FormEvent } from 'react';
-import { Link } from '../../types/link';
+import { Link as LinkType } from '../../types/link';
+
+interface LinkWithUser extends LinkType {
+  user?: { id: number; name: string | null; email: string };
+}
 
 const LinkList = ({
   filterTag,
+  userId,
   onRefresh,
 }: {
   filterTag: string | null;
+  userId?: string;
   onRefresh: () => void;
 }) => {
-  const [links, setLinks] = useState<Link[]>([]);
+  const [links, setLinks] = useState<LinkWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editUrl, setEditUrl] = useState('');
@@ -19,7 +25,10 @@ const LinkList = ({
 
   const fetchLinks = async () => {
     setLoading(true);
-    const res = await fetch('/api/links');
+    const params = new URLSearchParams();
+    if (filterTag) params.append('tag', filterTag);
+    if (userId) params.append('userId', userId);
+    const res = await fetch(`/api/links?${params.toString()}`);
     const data = await res.json();
     setLinks(data);
     setLoading(false);
@@ -27,7 +36,8 @@ const LinkList = ({
 
   useEffect(() => {
     fetchLinks();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterTag, userId]);
 
   async function handleDelete(id: number) {
     await fetch('/api/links', {
@@ -39,7 +49,7 @@ const LinkList = ({
     onRefresh();
   }
 
-  function startEdit(link: Link) {
+  function startEdit(link: LinkWithUser) {
     setEditingId(link.id);
     setEditUrl(link.url);
     setEditTitle(link.title || '');
@@ -91,7 +101,7 @@ const LinkList = ({
         <div>No links yet.</div>
       ) : (
         <ul className="space-y-2">
-          {filteredLinks.map((link) => (
+          {filteredLinks.map((link: LinkWithUser) => (
             <li key={link.id} className="border rounded p-3 flex flex-col gap-1 relative">
               {editingId === link.id ? (
                 <form
@@ -147,6 +157,12 @@ const LinkList = ({
                   >
                     Delete
                   </button>
+                  {/* Show user info */}
+                  {link.user && (
+                    <div className="text-xs text-gray-700 mb-1">
+                      User: {link.user.name || link.user.email}
+                    </div>
+                  )}
                   <a
                     href={link.url}
                     target="_blank"
