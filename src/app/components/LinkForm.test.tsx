@@ -26,7 +26,7 @@ describe('LinkForm', () => {
   it('renders the form and user dropdown', async () => {
     render(<LinkForm onAdd={() => {}} />);
     expect(await screen.findByText('Select user')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('URL*')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('https://example.com')).toBeInTheDocument();
     expect(screen.getByText('Add Link')).toBeInTheDocument();
     // User options
     expect(await screen.findByText('Alice')).toBeInTheDocument();
@@ -35,17 +35,27 @@ describe('LinkForm', () => {
 
   it('shows error if URL is missing', async () => {
     render(<LinkForm onAdd={() => {}} />);
-    fireEvent.click(screen.getByText('Add Link'));
-    expect(await screen.findByText(/url/i)).toBeInTheDocument();
+    await screen.findByText('Alice');
+
+    // Fill in user but not URL
+    fireEvent.change(screen.getByDisplayValue('Select user'), { target: { value: '1' } });
+
+    // Try to submit - button should be disabled
+    const submitButton = screen.getByText('Add Link');
+    expect(submitButton).toBeDisabled();
   });
 
   it('shows error if user is missing', async () => {
     render(<LinkForm onAdd={() => {}} />);
-    fireEvent.change(screen.getByPlaceholderText('URL*'), {
+
+    // Fill in URL but not user
+    fireEvent.change(screen.getByPlaceholderText('https://example.com'), {
       target: { value: 'https://test.com' },
     });
-    fireEvent.click(screen.getByText('Add Link'));
-    expect(await screen.findByText(/user is required/i)).toBeInTheDocument();
+
+    // Try to submit - button should be disabled
+    const submitButton = screen.getByText('Add Link');
+    expect(submitButton).toBeDisabled();
   });
 
   it('shows error if API returns error', async () => {
@@ -66,26 +76,38 @@ describe('LinkForm', () => {
     render(<LinkForm onAdd={() => {}} />);
     await screen.findByText('Alice');
 
-    await userEvent.type(screen.getByPlaceholderText('URL*'), 'https://test.com');
-    await userEvent.selectOptions(screen.getByLabelText('User'), '1');
+    // Fill in all required fields
+    await userEvent.type(screen.getByPlaceholderText('https://example.com'), 'https://test.com');
+    fireEvent.change(screen.getByDisplayValue('Select user'), { target: { value: '1' } });
 
-    fireEvent.click(screen.getByText('Add Link'));
+    // Now button should be enabled
+    const submitButton = screen.getByText('Add Link');
+    expect(submitButton).not.toBeDisabled();
+
+    fireEvent.click(submitButton);
 
     await waitFor(() => expect(screen.getByText(/failed to add link/i)).toBeInTheDocument());
   });
+
   it('calls onAdd on successful submit', async () => {
     const onAdd = jest.fn();
     render(<LinkForm onAdd={onAdd} />);
     await screen.findByText('Alice');
+
     await act(async () => {
-      fireEvent.change(screen.getByPlaceholderText('URL*'), {
+      fireEvent.change(screen.getByPlaceholderText('https://example.com'), {
         target: { value: 'https://test.com' },
       });
-      fireEvent.change(screen.getByLabelText('User'), { target: { value: '1' } });
+      fireEvent.change(screen.getByDisplayValue('Select user'), { target: { value: '1' } });
     });
-    expect(screen.getByPlaceholderText('URL*')).toHaveValue('https://test.com');
-    expect(screen.getByLabelText('User')).toHaveValue('1');
-    fireEvent.click(screen.getByText('Add Link'));
+
+    expect(screen.getByPlaceholderText('https://example.com')).toHaveValue('https://test.com');
+    expect(screen.getByDisplayValue('Alice')).toBeInTheDocument();
+
+    const submitButton = screen.getByText('Add Link');
+    expect(submitButton).not.toBeDisabled();
+
+    fireEvent.click(submitButton);
     await waitFor(() => expect(onAdd).toHaveBeenCalled());
   });
 });

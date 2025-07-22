@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get('userId');
   const tag = searchParams.get('tag');
+  const search = searchParams.get('search');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '10');
   const orderBy = searchParams.get('orderBy') || 'createdAt';
@@ -17,10 +18,27 @@ export async function GET(req: NextRequest) {
   type WhereType = {
     userId?: number;
     tags?: { has: string };
+    OR?: Array<{
+      title?: { contains: string; mode: 'insensitive' };
+      url?: { contains: string; mode: 'insensitive' };
+      tags?: { has: string };
+    }>;
   };
+  
   const where: WhereType = {};
+  
   if (userId) where.userId = parseInt(userId);
   if (tag) where.tags = { has: tag };
+  
+  // Add search functionality
+  if (search && search.trim()) {
+    const searchTerm = search.trim();
+    where.OR = [
+      { title: { contains: searchTerm, mode: 'insensitive' } },
+      { url: { contains: searchTerm, mode: 'insensitive' } },
+      { tags: { has: searchTerm } },
+    ];
+  }
 
   // Get total count for pagination metadata
   const totalCount = await prisma.link.count({ where });
