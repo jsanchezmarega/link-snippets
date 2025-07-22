@@ -110,4 +110,81 @@ describe('LinkForm', () => {
     fireEvent.click(submitButton);
     await waitFor(() => expect(onAdd).toHaveBeenCalled());
   });
+
+  it('shows success message when link is added successfully', async () => {
+    const onAdd = jest.fn();
+    render(<LinkForm onAdd={onAdd} />);
+    await screen.findByText('Alice');
+
+    // Fill in all required fields
+    await userEvent.type(screen.getByPlaceholderText('https://example.com'), 'https://test.com');
+    fireEvent.change(screen.getByDisplayValue('Select user'), { target: { value: '1' } });
+
+    // Submit the form
+    const submitButton = screen.getByText('Add Link');
+    expect(submitButton).not.toBeDisabled();
+
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
+
+    // Check for success message - it should appear and stay visible
+    await waitFor(
+      () => {
+        expect(screen.getByText('Link added successfully!')).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
+
+    // Verify onAdd was called
+    expect(onAdd).toHaveBeenCalled();
+
+    // Verify success message is visible
+    expect(
+      screen.getByText('Your link has been saved and is now available in the list below.'),
+    ).toBeInTheDocument();
+  });
+
+  it('clears form when Escape key is pressed', async () => {
+    render(<LinkForm onAdd={() => {}} />);
+    await screen.findByText('Alice');
+
+    // Fill in some form fields
+    await userEvent.type(screen.getByPlaceholderText('https://example.com'), 'https://test.com');
+    fireEvent.change(screen.getByDisplayValue('Select user'), { target: { value: '1' } });
+    await userEvent.type(screen.getByPlaceholderText('Page title (optional)'), 'Test Title');
+
+    // Verify fields are filled
+    expect(screen.getByPlaceholderText('https://example.com')).toHaveValue('https://test.com');
+    expect(screen.getByDisplayValue('Alice')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Page title (optional)')).toHaveValue('Test Title');
+
+    // Press Escape key
+    await act(async () => {
+      fireEvent.keyDown(document, { key: 'Escape' });
+    });
+
+    // Verify form is cleared
+    expect(screen.getByPlaceholderText('https://example.com')).toHaveValue('');
+    expect(screen.getByDisplayValue('Select user')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Page title (optional)')).toHaveValue('');
+  });
+
+  it('submits form when Ctrl+Enter is pressed', async () => {
+    const onAdd = jest.fn();
+    render(<LinkForm onAdd={onAdd} />);
+    await screen.findByText('Alice');
+
+    // Fill in required fields
+    await userEvent.type(screen.getByPlaceholderText('https://example.com'), 'https://test.com');
+    fireEvent.change(screen.getByDisplayValue('Select user'), { target: { value: '1' } });
+
+    // Press Ctrl+Enter
+    await act(async () => {
+      fireEvent.keyDown(document, { key: 'Enter', ctrlKey: true });
+    });
+
+    // Verify onAdd was called
+    await waitFor(() => expect(onAdd).toHaveBeenCalled());
+  });
 });

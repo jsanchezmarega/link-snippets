@@ -9,6 +9,7 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
   const [users, setUsers] = useState<{ id: number; name: string; email: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [fetchingTitle, setFetchingTitle] = useState(false);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
         setTags('');
         setUserId('');
         setError('');
+        setSuccess(false);
       }
     };
 
@@ -82,9 +84,18 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
     }
   };
 
+  const clearForm = () => {
+    setUrl('');
+    setTitle('');
+    setTags('');
+    setUserId('');
+    setError('');
+  };
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
+    setSuccess(false);
 
     if (!url) {
       setError('URL is required');
@@ -120,11 +131,16 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
         return;
       }
 
-      setUrl('');
-      setTitle('');
-      setTags('');
-      setUserId('');
+      // Success! Show feedback first
+      setSuccess(true);
       onAdd();
+
+      clearForm();
+
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => {
+        setSuccess(false);
+      }, 3000);
     } catch {
       setError('Failed to add link');
     } finally {
@@ -137,6 +153,27 @@ const LinkForm = ({ onAdd }: { onAdd: () => void }) => {
       <div className="text-xs text-gray-500 mb-2">
         💡 Tip: Use Ctrl+Enter to submit, Escape to clear
       </div>
+
+      {success && (
+        <div
+          className="bg-green-50 border border-green-200 rounded p-3 mb-4 animate-pulse"
+          role="alert"
+        >
+          <div className="flex items-center">
+            <svg className="h-5 w-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className="text-green-800 font-medium">Link added successfully!</span>
+          </div>
+          <p className="text-green-700 text-sm mt-1">
+            Your link has been saved and is now available in the list below.
+          </p>
+        </div>
+      )}
 
       <label className="flex flex-col gap-1">
         User *
