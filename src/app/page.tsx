@@ -17,7 +17,7 @@ export default function Home() {
     async function fetchTags() {
       const res = await fetch('/api/links');
       const data = await res.json();
-      const tags = Array.from(new Set(data.flatMap((l: Link) => l.tags || []))) as string[];
+      const tags = Array.from(new Set(data.links.flatMap((l: Link) => l.tags || []))) as string[];
       setAllTags(tags);
     }
     fetchTags();
@@ -49,10 +49,9 @@ export default function Home() {
         </select>
         <TagFilter allTags={allTags} filterTag={filterTag} setFilterTag={setFilterTag} />
       </div>
-      {/* Key forces remount to refresh list after adding or deleting */}
       <div className="w-full flex justify-center">
         <LinkList
-          key={refresh + '-' + filterTag + '-' + userFilter}
+          key={`${refresh}-${filterTag}-${userFilter}`}
           filterTag={filterTag}
           userId={userFilter}
           onRefresh={() => setRefresh((r) => r + 1)}

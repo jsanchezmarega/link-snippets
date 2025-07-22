@@ -1,37 +1,81 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import LinkList from './LinkList';
 
+// Mock fetch globally
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
 describe('LinkList', () => {
+  beforeEach(() => {
+    mockFetch.mockClear();
+  });
+
   it('renders a list of links with user info', async () => {
-    const links = [
+    const mockLinks = [
       {
         id: 1,
-        url: 'https://prisma.io',
-        title: 'Prisma',
-        tags: ['orm', 'typescript'],
-        createdAt: new Date().toISOString(),
-        user: { id: 1, name: 'Alice', email: 'alice@example.com' },
+        url: 'https://example.com',
+        title: 'Example Link',
+        tags: ['test', 'example'],
+        createdAt: '2023-01-01T00:00:00.000Z',
+        user: { id: 1, name: 'Alice Johnson', email: 'alice@example.com' },
       },
       {
         id: 2,
-        url: 'https://nextjs.org',
-        title: 'Next.js',
-        tags: ['react', 'framework'],
-        createdAt: new Date().toISOString(),
-        user: { id: 2, name: 'Bob', email: 'bob@example.com' },
+        url: 'https://test.com',
+        title: 'Test Link',
+        tags: ['test'],
+        createdAt: '2023-01-02T00:00:00.000Z',
+        user: { id: 2, name: 'Bob Smith', email: 'bob@example.com' },
       },
     ];
-    global.fetch = jest.fn().mockResolvedValue({ json: async () => links });
-    render(<LinkList filterTag={null} userId={undefined} onRefresh={() => {}} />);
-    expect(await screen.findByText('Prisma')).toBeInTheDocument();
-    expect(screen.getByText('User: Alice')).toBeInTheDocument();
-    expect(screen.getByText('Next.js')).toBeInTheDocument();
-    expect(screen.getByText('User: Bob')).toBeInTheDocument();
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        links: mockLinks,
+        pagination: {
+          page: 1,
+          limit: 5,
+          totalCount: 2,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      }),
+    });
+
+    render(<LinkList filterTag={null} onRefresh={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Example Link')).toBeInTheDocument();
+      expect(screen.getByText('Test Link')).toBeInTheDocument();
+      expect(screen.getByText('User: Alice Johnson')).toBeInTheDocument();
+      expect(screen.getByText('User: Bob Smith')).toBeInTheDocument();
+    });
   });
 
-  it('shows empty state when no links', async () => {
-    global.fetch = jest.fn().mockResolvedValue({ json: async () => [] });
-    render(<LinkList filterTag={null} userId={undefined} onRefresh={() => {}} />);
-    expect(await screen.findByText('No links yet.')).toBeInTheDocument();
+  it('renders empty state when no links', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        links: [],
+        pagination: {
+          page: 1,
+          limit: 5,
+          totalCount: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      }),
+    });
+
+    render(<LinkList filterTag={null} onRefresh={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No links found.')).toBeInTheDocument();
+    });
   });
 });
